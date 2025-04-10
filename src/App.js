@@ -37,11 +37,12 @@ function App() {
           {loading ? (
             <p>Loading songs...</p>
           ) : (
-            <ul>
+            <ul className="playlist-list">
               {playlist.map((track) => (
-                <li key={track.trackId}>
-                  <strong>{track.trackName}</strong> by {track.artistName}
-                  <br />
+                <li key={track.trackId} className="track-item">
+                  <p className="track-title">
+                    🎵 <strong>{track.trackName}</strong> by {track.artistName}
+                  </p>
                   {track.previewUrl && (
                     <audio controls src={track.previewUrl}>
                       Your browser does not support the audio element.
