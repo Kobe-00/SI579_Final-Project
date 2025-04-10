@@ -1,1 +1,3 @@
-# SI579_Final-Project
+Donghwan's SI 579 Final Project
+
+Website: Mood-Based Music Finder
