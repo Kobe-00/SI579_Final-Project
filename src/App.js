@@ -13,6 +13,14 @@ function App() {
   });
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
+  const moodKeywords = {
+    Happy: 'feel good upbeat pop',
+    Sad: 'melancholy piano ballad',
+    Energetic: 'dance workout edm',
+    Chill: 'lofi chillhop acoustic',
+    Focus: 'instrumental study beats'
+  };
+
   useEffect(() => {
     localStorage.setItem('favoriteSongs', JSON.stringify(favorites));
   }, [favorites]);
@@ -21,8 +29,9 @@ function App() {
     setIsLoading(true);
     setError(null);
     try {
+      const searchTerm = moodKeywords[mood] || mood;
       const response = await fetch(
-        `https://itunes.apple.com/search?term=${encodeURIComponent(mood)}&media=music&limit=12`
+        `https://itunes.apple.com/search?term=${encodeURIComponent(searchTerm)}&media=music&limit=12`
       );
       if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();
