@@ -2,7 +2,6 @@
   "name": "mood-music-finder",
   "version": "1.0.0",
   "private": true,
-  "homepage": "https://kobe-00.github.io/SI579_Final-Project",
   "description": "A React web app that finds music based on your mood using the iTunes API.",
   "scripts": {
     "start": "react-scripts start",
