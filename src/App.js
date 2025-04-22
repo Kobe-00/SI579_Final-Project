@@ -1,37 +1,59 @@
 /**
  * App.js - Main React component for Mood-Based Music Finder
- * Handles mood selection, music fetching from iTunes API, state management,
- * and rendering the user interface for both playlists and favorites.
+ * 
+ * Renders the complete application interface and handles:
+ * - Mood selection via MoodSelector
+ * - Music search from the iTunes API
+ * - Favorite song tracking and persistence
+ * - State management and conditional UI rendering
+ *
+ * @component
+ * @returns {JSX.Element}
  */
 
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import MoodSelector from './components/MoodSelector';
 
+/**
+ * @typedef {Object} Track
+ * @property {string} trackName
+ * @property {string} artistName
+ * @property {string} artworkUrl100
+ * @property {string} previewUrl
+ * @property {string} primaryGenreName
+ * @property {number} trackId
+ */
+
 function App() {
   /** 
+   * Currently selected mood from the MoodSelector.
    * @type {[string, Function]} 
    */
   const [selectedMood, setSelectedMood] = useState('');
 
   /** 
-   * @type {[Array<Object>, Function]} 
+   * Songs fetched from the iTunes API based on the selected mood.
+   * @type {[Array<Track>, Function]} 
    */
   const [playlist, setPlaylist] = useState([]);
 
   /** 
+   * Loading state for music fetching. Used to show loading spinner.
    * @type {[boolean, Function]} 
    */
   const [isLoading, setIsLoading] = useState(false);
 
   /** 
+   * Error message to display when API request fails.
    * @type {[string|null, Function]} 
    */
   const [error, setError] = useState(null);
 
   /**
-   * Retrieves saved favorites from localStorage on initial load.
-   * @returns {Array<Object>} Array of favorite tracks
+   * Array of user favorite songs, persisted in localStorage.
+   * Initializes from saved localStorage value on first render.
+   * @type {[Array<Track>, Function]}
    */
   const [favorites, setFavorites] = useState(() => {
     const saved = localStorage.getItem('favoriteSongs');
@@ -39,12 +61,13 @@ function App() {
   });
 
   /** 
+   * If true, displays only favorite songs instead of current mood playlist.
    * @type {[boolean, Function]} 
    */
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
   /**
-   * Keywords used to represent different moods for music search.
+   * Preset search phrases associated with each mood to improve iTunes query relevance.
    */
   const moodKeywords = {
     Happy: 'feel good upbeat pop',
@@ -55,15 +78,17 @@ function App() {
   };
 
   /**
-   * Persist favorites to localStorage whenever the list updates.
+   * Sync favorites to localStorage every time the favorites list changes.
    */
   useEffect(() => {
     localStorage.setItem('favoriteSongs', JSON.stringify(favorites));
   }, [favorites]);
 
   /**
-   * Fetches music data from iTunes API based on selected mood.
-   * @param {string} mood - The selected mood keyword
+   * Fetches music data from the iTunes API using a mood keyword.
+   * Updates the playlist and handles loading and error UI states.
+   * @param {string} mood - The selected mood triggering the search.
+   * @returns {Promise<void>}
    */
   const fetchSongs = async (mood) => {
     setIsLoading(true);
@@ -85,8 +110,11 @@ function App() {
   };
 
   /**
-   * Handles a mood button click and triggers music fetch.
+   * Called when a user selects a mood from MoodSelector.
+   * Sets the selected mood, disables "favorites only" view,
+   * and fetches the matching music playlist.
    * @param {string} mood - Selected mood value from MoodSelector
+   * @returns {void}
    */
   const handleMoodChange = (mood) => {
     setSelectedMood(mood);
@@ -95,8 +123,10 @@ function App() {
   };
 
   /**
-   * Toggles a track's presence in the favorites list.
-   * @param {Object} track - The track object from iTunes API
+   * Adds or removes a track from the user's favorites list.
+   * Uses the unique track ID to determine existence.
+   * @param {Track} track - The track object from iTunes API
+   * @returns {void}
    */
   const toggleFavorite = (track) => {
     const exists = favorites.some((fav) => fav.trackId === track.trackId);
@@ -109,27 +139,36 @@ function App() {
 
   /**
    * Checks whether a track is already in the favorites.
-   * @param {Object} track
+   * @param {Track} track
    * @returns {boolean} True if track is favorite
    */
   const isFavorite = (track) => favorites.some((fav) => fav.trackId === track.trackId);
 
   /**
-   * Shuffles the current playlist randomly.
+   * Randomly shuffles the current playlist.
+   * Called only when a mood playlist is shown (not in favorites view).
+   * @returns {void}
    */
   const shuffleSongs = () => {
     const shuffled = [...playlist].sort(() => Math.random() - 0.5);
     setPlaylist(shuffled);
   };
 
+  /**
+   * Track list to render: either all favorites or the current mood playlist.
+   * @type {Array<Track>}
+   */
   const tracksToDisplay = showFavoritesOnly ? favorites : playlist;
 
   return (
     <div className="App">
       <header className="App-header">
         <h1>🎧 Mood-Based Music Finder</h1>
+
+        {/* Mood selection interface */}
         <MoodSelector onSelect={handleMoodChange} />
 
+        {/* Toggle between showing favorites and mood playlist */}
         <div className="top-buttons">
           <button
             className="toggle-favorites"
@@ -139,9 +178,11 @@ function App() {
           </button>
         </div>
 
+        {/* Display error or loading state */}
         {error && <p style={{ color: 'red' }}>{error}</p>}
         {isLoading && <div className="spinner"></div>}
 
+        {/* Playlist header section */}
         <div className="playlist-header">
           <h2>
             {showFavoritesOnly
@@ -158,6 +199,7 @@ function App() {
           )}
         </div>
 
+        {/* Track cards rendering */}
         <div className="track-grid">
           {tracksToDisplay.map((track) => (
             <div
@@ -166,6 +208,7 @@ function App() {
               onMouseEnter={(e) => {
                 const audio = e.currentTarget.querySelector('audio');
                 if (audio) {
+                  // Play preview audio on hover (muted)
                   audio.muted = true;
                   audio.play().catch(() => {});
                 }
@@ -173,6 +216,7 @@ function App() {
               onMouseLeave={(e) => {
                 const audio = e.currentTarget.querySelector('audio');
                 if (audio) {
+                  // Pause and reset audio when mouse leaves
                   audio.pause();
                   audio.currentTime = 0;
                 }
