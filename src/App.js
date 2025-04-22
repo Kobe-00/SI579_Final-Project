@@ -1,18 +1,51 @@
+/**
+ * App.js - Main React component for Mood-Based Music Finder
+ * Handles mood selection, music fetching from iTunes API, state management,
+ * and rendering the user interface for both playlists and favorites.
+ */
+
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import MoodSelector from './components/MoodSelector';
 
 function App() {
+  /** 
+   * @type {[string, Function]} 
+   */
   const [selectedMood, setSelectedMood] = useState('');
+
+  /** 
+   * @type {[Array<Object>, Function]} 
+   */
   const [playlist, setPlaylist] = useState([]);
+
+  /** 
+   * @type {[boolean, Function]} 
+   */
   const [isLoading, setIsLoading] = useState(false);
+
+  /** 
+   * @type {[string|null, Function]} 
+   */
   const [error, setError] = useState(null);
+
+  /**
+   * Retrieves saved favorites from localStorage on initial load.
+   * @returns {Array<Object>} Array of favorite tracks
+   */
   const [favorites, setFavorites] = useState(() => {
     const saved = localStorage.getItem('favoriteSongs');
     return saved ? JSON.parse(saved) : [];
   });
+
+  /** 
+   * @type {[boolean, Function]} 
+   */
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
+  /**
+   * Keywords used to represent different moods for music search.
+   */
   const moodKeywords = {
     Happy: 'feel good upbeat pop',
     Sad: 'melancholy piano ballad',
@@ -21,10 +54,17 @@ function App() {
     Focus: 'instrumental study beats'
   };
 
+  /**
+   * Persist favorites to localStorage whenever the list updates.
+   */
   useEffect(() => {
     localStorage.setItem('favoriteSongs', JSON.stringify(favorites));
   }, [favorites]);
 
+  /**
+   * Fetches music data from iTunes API based on selected mood.
+   * @param {string} mood - The selected mood keyword
+   */
   const fetchSongs = async (mood) => {
     setIsLoading(true);
     setError(null);
@@ -44,12 +84,20 @@ function App() {
     }
   };
 
+  /**
+   * Handles a mood button click and triggers music fetch.
+   * @param {string} mood - Selected mood value from MoodSelector
+   */
   const handleMoodChange = (mood) => {
     setSelectedMood(mood);
     setShowFavoritesOnly(false);
     fetchSongs(mood);
   };
 
+  /**
+   * Toggles a track's presence in the favorites list.
+   * @param {Object} track - The track object from iTunes API
+   */
   const toggleFavorite = (track) => {
     const exists = favorites.some((fav) => fav.trackId === track.trackId);
     if (exists) {
@@ -59,8 +107,16 @@ function App() {
     }
   };
 
+  /**
+   * Checks whether a track is already in the favorites.
+   * @param {Object} track
+   * @returns {boolean} True if track is favorite
+   */
   const isFavorite = (track) => favorites.some((fav) => fav.trackId === track.trackId);
 
+  /**
+   * Shuffles the current playlist randomly.
+   */
   const shuffleSongs = () => {
     const shuffled = [...playlist].sort(() => Math.random() - 0.5);
     setPlaylist(shuffled);
